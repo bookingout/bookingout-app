@@ -2,17 +2,16 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState } from "react"; // Keep state for input control
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast"; // Bring back useToast
-import { Toaster } from "@/components/ui/toaster"; // Ensure Toaster is also used in layout.tsx
+// Removed useToast, isLoading, handleSubmit, fetch
 
 interface NewsletterSignupProps {
   title: string;
   description: string;
   buttonText: string;
-  successMessage: string; // We'll use this again for the toast
+  successMessage: string; // Prop received but not used here
   placeholderText: string;
 }
 
@@ -20,67 +19,9 @@ export default function NewsletterSignup({
   title,
   description,
   buttonText,
-  successMessage,
   placeholderText,
 }: NewsletterSignupProps) {
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default page reload
-
-    if (!email || !email.includes("@")) {
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    // Prepare data for Netlify form submission
-    const formData = new FormData();
-    formData.append("form-name", "newsletter"); // Must match the name in newsletter-form.html
-    formData.append("email", email);
-    // Add honeypot field if you want to mimic it, though Netlify might handle it
-    // formData.append("bot-field", "");
-
-    try {
-      // Submit to the PATH of the static HTML form file
-      const response = await fetch("/newsletter-form.html", { // Submit to the path
-        method: "POST",
-        // headers: { "Content-Type": "application/x-www-form-urlencoded" }, // Not needed for FormData
-        body: new URLSearchParams(formData as any).toString(), // Encode FormData for submission
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Success!",
-          description: successMessage, // Use the success message prop
-        });
-        setEmail(""); // Clear the input field
-      } else {
-        // Handle potential errors from Netlify submission if needed
-        toast({
-          title: "Submission Error",
-          description: "Could not submit the form. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Form submission error:", error);
-      toast({
-        title: "Something went wrong",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -89,31 +30,44 @@ export default function NewsletterSignup({
         <p className="text-gray-300">{description}</p>
       </div>
 
-      {/* --- REACT FORM (NO Netlify attributes here) --- */}
-      {/* Uses onSubmit to trigger our JS fetch */}
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
-        {/* No hidden Netlify fields needed IN THIS VISIBLE form */}
+      {/* --- FORM WITH NETLIFY ATTRIBUTES DIRECTLY --- */}
+      {/* Let Netlify handle the submission via standard HTML POST */}
+      <form
+        name="newsletter" // Critical: Name Netlify looks for
+        method="POST"
+        data-netlify="true"
+        data-netlify-honeypot="bot-field" // Optional spam prevention
+        className="flex flex-col sm:flex-row gap-3"
+        // action="/thank-you" // Optional: Add custom success page redirect
+      >
+        {/* Hidden input REQUIRED by Netlify to identify the form by name */}
+        <input type="hidden" name="form-name" value="newsletter" />
+
+        {/* Optional: Honeypot field (must be hidden) */}
+        <p className="hidden">
+          <label>
+            Don’t fill this out if you’re human: <input name="bot-field" />
+          </label>
+        </p>
+
         <Input
           type="email"
-          name="email" // Keep name, useful for accessibility/state, though not for Netlify directly here
+          name="email" // Critical: Field name Netlify will capture
           placeholder={placeholderText}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
           required
-          disabled={isLoading} // Disable input while loading
-          autoComplete="email"
+          autoComplete="email" // Good practice
         />
         <Button
-          type="submit"
+          type="submit" // Standard submit triggers the form POST
           className="bg-pink-500 hover:bg-pink-600 text-white"
-          disabled={isLoading} // Disable button while loading
         >
-          {isLoading ? "..." : buttonText}
+          {buttonText}
         </Button>
       </form>
       {/* --- END FORM --- */}
-      {/* Make sure <Toaster /> is in your layout.tsx to see toasts */}
     </div>
   );
 }
