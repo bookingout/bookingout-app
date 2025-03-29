@@ -1,79 +1,118 @@
 // components/NewsletterSignup.tsx
-"use client"; // Keep this
+"use client";
 
-import type React from "react"; // Import React type if needed by your setup
-import { useState } from "react"; // Keep state for the input
-import { Button } from "@/components/ui/button"; // Keep Button component
-import { Input } from "@/components/ui/input"; // Keep Input component
-// Removed useToast and related state/functions as Netlify handles feedback/submission
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast"; // Bring back useToast
+import { Toaster } from "@/components/ui/toaster"; // Ensure Toaster is also used in layout.tsx
 
-// Define the props the component expects
 interface NewsletterSignupProps {
   title: string;
   description: string;
   buttonText: string;
-  successMessage: string; // Keep if page.tsx sends it, though not used here
+  successMessage: string; // We'll use this again for the toast
   placeholderText: string;
 }
 
-// Receive and destructure the props correctly
 export default function NewsletterSignup({
   title,
   description,
   buttonText,
-  // successMessage, // Prop received but not actively used in this Netlify version
-  placeholderText, // Make sure this is received
+  successMessage,
+  placeholderText,
 }: NewsletterSignupProps) {
-  // State only needed to control the input field's value
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  // The handleSubmit function is removed - Netlify handles the form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent default page reload
+
+    if (!email || !email.includes("@")) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Prepare data for Netlify form submission
+    const formData = new FormData();
+    formData.append("form-name", "newsletter"); // Must match the name in newsletter-form.html
+    formData.append("email", email);
+    // Add honeypot field if you want to mimic it, though Netlify might handle it
+    // formData.append("bot-field", "");
+
+    try {
+      // Submit to the PATH of the static HTML form file
+      const response = await fetch("/newsletter-form.html", { // Submit to the path
+        method: "POST",
+        // headers: { "Content-Type": "application/x-www-form-urlencoded" }, // Not needed for FormData
+        body: new URLSearchParams(formData as any).toString(), // Encode FormData for submission
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success!",
+          description: successMessage, // Use the success message prop
+        });
+        setEmail(""); // Clear the input field
+      } else {
+        // Handle potential errors from Netlify submission if needed
+        toast({
+          title: "Submission Error",
+          description: "Could not submit the form. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-6">
-        {/* Use the destructured props */}
         <h3 className="text-2xl font-bold mb-2">{title}</h3>
         <p className="text-gray-300">{description}</p>
       </div>
 
-      {/* --- FORM CONFIGURED FOR NETLIFY --- */}
-      <form
-        name="newsletter" // Name for Netlify Forms
-        method="POST"
-        data-netlify="true" // Enable Netlify processing
-        data-netlify-honeypot="bot-field" // Spam prevention
-        className="flex flex-col sm:flex-row gap-3"
-        // Optional: Add action="/thank-you" for a custom success page
-        // action="/thank-you"
-      >
-        {/* Hidden fields required by Netlify */}
-        <input type="hidden" name="form-name" value="newsletter" />
-        <p className="hidden">
-          {" "}
-          {/* visually hide the honeypot */}
-          <label>
-            Don’t fill this out if you’re human: <input name="bot-field" />
-          </label>
-        </p>
-
+      {/* --- REACT FORM (NO Netlify attributes here) --- */}
+      {/* Uses onSubmit to trigger our JS fetch */}
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+        {/* No hidden Netlify fields needed IN THIS VISIBLE form */}
         <Input
           type="email"
-          name="email" // Essential: Netlify uses this 'name' attribute
-          placeholder={placeholderText} // Use the destructured prop
-          value={email} // Controlled input
-          onChange={(e) => setEmail(e.target.value)} // Update state on change
+          name="email" // Keep name, useful for accessibility/state, though not for Netlify directly here
+          placeholder={placeholderText}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-          required // Basic HTML validation
+          required
+          disabled={isLoading} // Disable input while loading
         />
         <Button
-          type="submit" // Standard submit button triggers Netlify
+          type="submit"
           className="bg-pink-500 hover:bg-pink-600 text-white"
+          disabled={isLoading} // Disable button while loading
         >
-          {buttonText} {/* Use the destructured prop */}
+          {isLoading ? "..." : buttonText}
         </Button>
       </form>
       {/* --- END FORM --- */}
+      {/* Make sure <Toaster /> is in your layout.tsx to see toasts */}
     </div>
   );
 }
