@@ -102,6 +102,7 @@ export default function NewsletterSignup({
           className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
           required
           disabled={isLoading} // Disable input while loading
+          autoComplete="email"
         />
         <Button
           type="submit"
