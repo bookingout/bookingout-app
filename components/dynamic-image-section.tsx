@@ -2,76 +2,56 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+// --- Use Language Context ---
+import { useLanguage } from "@/lib/contexts/language-context";
+// --- Import the main translations object directly ---
+import { translations } from "@/lib/translations"; // Adjust path if needed
 
-const images = [
-  {
-    url: "/club-image.png",
-    alt: "Vibrant nightclub scene with colorful lights",
-    title: "Nightlife Vibes",
-    description: "Experience the energy of Poland's most exclusive clubs",
-  },
-  {
-    url: "/resort-image.png",
-    alt: "Luxurious resort pool with palm trees",
-    title: "Relaxation Retreats",
-    description: "Unwind in stunning resorts with world-class amenities",
-  },
-  {
-    url: "/social-image.png",
-    alt: "Social gathering in a modern lounge",
-    title: "Social Spaces",
-    description: "Connect with like-minded people in stylish venues",
-  },
-  {
-    url: "/romantic-image.png",
-    alt: "Romantic dinner setting with city views",
-    title: "Unforgettable Moments",
-    description: "Create memories that last a lifetime",
-  },
+// Keep only the image URLs here
+const imageSources = [
+  { url: "/club-image.png" },
+  { url: "/resort-image.png" },
+  { url: "/social-image.png" },
+  { url: "/romantic-image.png" },
 ]
 
+// Define the structure of a translated item
+interface TranslatedItem {
+    title: string;
+    description: string;
+    alt: string;
+}
+
 export default function DynamicImageSection() {
+  // Get the current language object and the 't' function (though we might not use 't' directly for the array)
+  const { currentLanguage } = useLanguage();
+  const currentLangCode = currentLanguage.code as keyof typeof translations; // Get 'en' or 'pl'
+
   const [activeIndex, setActiveIndex] = useState(0)
-  const [scrollY, setScrollY] = useState(0)
 
-  // Update scroll position
+  // --- Get translated items array DIRECTLY from the translations object ---
+  const translatedItems: TranslatedItem[] =
+      translations[currentLangCode]?.dynamicImageSection?.items || [];
+  // --- End direct access ---
+
+  // Timer effect
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY)
-    }
+    const timer = setInterval(() => {
+      // Use the length of imageSources as it's fixed and known
+      const numberOfItems = imageSources.length;
+      if (numberOfItems > 0) {
+           setActiveIndex((prevIndex) => (prevIndex + 1) % numberOfItems);
+      }
+    }, 3000);
+    return () => clearInterval(timer);
+    // Run only once on mount
+  }, []);
 
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
 
-  // Change image based on scroll position
-  // useEffect(() => {
-  //   // Get viewport height to calculate relative scroll position
-  //   const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
-
-  //   // Change image every 50vh of scrolling (adjust as needed)
-  //   const newIndex = Math.min(Math.floor(scrollY / (vh * 0.5)) % images.length, images.length - 1)
-
-  //   if (newIndex !== activeIndex && newIndex >= 0) {
-  //     setActiveIndex(newIndex)
-  //   }
-  // }, [scrollY, activeIndex])
-
-  // Add this useEffect hook inside your DynamicImageSection component function
-
-useEffect(() => {
-  // Set up the interval timer
-  const timer = setInterval(() => {
-    // Calculate the next index
-    // Use the modulo operator (%) to loop back to 0 after the last image
-    setActiveIndex((prevIndex) => (prevIndex + 1) % images.length);
-  }, 3000); // Change image every 3000ms (3 seconds) - adjust as needed
-
-  // Clean up the interval timer when the component unmounts
-  // or when activeIndex changes manually (important!)
-  return () => clearInterval(timer);
-
-}, []); // Empty dependency array means this effect runs only once on mount
+  // Get the current item based on activeIndex
+  // Use optional chaining and provide default values if translatedItems is empty initially
+  const currentItem = translatedItems[activeIndex] || { title: "Loading...", description: "", alt: "Loading image description" };
+  const currentImageSource = imageSources[activeIndex] || { url: "/placeholder.svg" };
 
   return (
     <section className="py-20 px-4 bg-gray-800 overflow-hidden">
@@ -81,7 +61,7 @@ useEffect(() => {
           <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px] rounded-xl overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
-                key={activeIndex}
+                key={activeIndex} // Key change triggers animation
                 initial={{ opacity: 0, x: 100 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
@@ -90,8 +70,8 @@ useEffect(() => {
               >
                 <div className="relative w-full h-full">
                   <img
-                    src={images[activeIndex].url || "/placeholder.svg"}
-                    alt={images[activeIndex].alt}
+                    src={currentImageSource.url}
+                    alt={currentItem.alt} // Use alt from currentItem (with fallback)
                     className="w-full h-full object-cover rounded-xl"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent rounded-xl"></div>
@@ -102,9 +82,10 @@ useEffect(() => {
 
           {/* Text Content */}
           <div className="w-full lg:w-1/2">
+            {/* No conditional rendering needed now, currentItem has fallbacks */}
             <AnimatePresence mode="wait">
               <motion.div
-                key={activeIndex}
+                key={activeIndex} // Key change triggers animation
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -112,16 +93,20 @@ useEffect(() => {
               >
                 <h2 className="text-3xl md:text-4xl font-bold mb-6">
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-cyan-500">
-                    {images[activeIndex].title}
+                    {/* Use translated title from currentItem */}
+                    {currentItem.title}
                   </span>
                 </h2>
-                <p className="text-xl text-gray-300 mb-8">{images[activeIndex].description}</p>
+                <p className="text-xl text-gray-300 mb-8">
+                  {/* Use translated description from currentItem */}
+                  {currentItem.description}
+                </p>
               </motion.div>
             </AnimatePresence>
 
             {/* Image Indicators */}
             <div className="flex space-x-2 mt-8">
-              {images.map((_, index) => (
+              {imageSources.map((_, index) => (
                 <button
                   key={index}
                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
@@ -138,4 +123,3 @@ useEffect(() => {
     </section>
   )
 }
-

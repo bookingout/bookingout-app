@@ -123,3 +123,87 @@ body {
   }
 }
 
+/* --- ADD THESE LINES AT THE END --- */
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.shadow-glow {
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.3); /* Adjust color/opacity if needed */
+}
+
+/* Make sure you don't have duplicate @layer base { :root { ... } } or .dark { ... } sections.
+   The ones provided by v0 look like standard ShadCN/UI theme variables.
+   If your existing globals.css already has :root and .dark definitions for themes,
+   you likely DON'T need to copy those variable blocks again.
+   Only add the custom classes above (.animation-delay-*, .shadow-glow).
+*/
+
+/* --- PASTE THIS AT THE END of globals.css --- for MENU*/
+@layer utilities {
+  .animate-slide-down-in {
+    animation: slideDownIn 0.5s forwards;
+  }
+
+  .animate-slide-down-out {
+    animation: slideDownOut 0.5s forwards;
+  }
+
+  .animate-slide-up-in {
+    animation: slideUpIn 0.5s forwards;
+  }
+
+  .animate-slide-up-out {
+    animation: slideUpOut 0.5s forwards;
+  }
+
+  @keyframes slideDownIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDownOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  }
+
+  @keyframes slideUpIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUpOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+  }
+}
+/* --- END OF PASTE --- */

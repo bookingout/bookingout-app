@@ -1,146 +1,141 @@
 "use client"
 
-import { Heart, Music, Palmtree } from "lucide-react"
-import Link from "next/link"
-import { useState, useEffect, useRef } from "react"
-import { translations } from "@/lib/translations"
-import LanguageSelector from "@/components/language-selector"
-import NewsletterSignup from "@/components/newsletter-signup"
+// --- Core Imports ---
+import { useRef } from "react" // Keep useRef if needed later
+import { motion } from "framer-motion";
+
+// --- Language & Translation ---
+import { useLanguage } from "@/lib/contexts/language-context";
+import { translations } from "@/lib/translations"; // Import the main translations object directly for FAQ data
+
+// --- UI Components ---
 import SubtitleCarousel from "@/components/subtitle-carousel"
-import AnimatedTitle from "@/components/animated-title"
+import ElegantCTAButton from "@/components/ui/elegant-cta-button";
+// import AnimatedTitle from "@/components/animated-title" // Remove if not used
 import FAQSection from "@/components/faq-section"
 import SocialLinks from "@/components/social-links"
-import DynamicImageSection from "@/components/dynamic-image-section"
+import DynamicImageSection from "@/components/dynamic-image-section" // Keep if used
 import { Toaster } from "@/components/ui/toaster"
+import BookingOutAboutSection from '@/components/bookingout-about-section';
+import NewsletterSection from '@/components/newsletter-section'; // Assume this uses useLanguage internally
+import EnhancedInteractiveCards from '@/components/enhanced-interactive-cards'; // Keep if used
+import VideoBackground from '@/components/video-background';
 
+// --- Carousel Subtitles (Hardcoded as per previous step) ---
+const carouselSubtitles = [
+  "Vibrant Clubs",
+  "Relaxing Resorts",
+  "Friendly Spaces",
+  "Unforgettable Fun",
+  "Exciting Encounters",
+  "Handsome Strangers",
+  "Blind Dates",
+  "Dark Room",
+  "Cruising",
+  "Let Your Fantasy Go Wild",
+]
+
+// --- Page Component ---
 export default function Home() {
-  const [language, setLanguage] = useState("en")
-  const t = translations[language]
-  const newsletterRef = useRef<HTMLDivElement>(null)
+  const { currentLanguage, t } = useLanguage();
+  // const newsletterRef = useRef<HTMLDivElement>(null);
 
-  // Handle language change
-  const handleLanguageChange = (lang: string) => {
-    setLanguage(lang)
-    localStorage.setItem("preferredLanguage", lang)
-  }
-
-  // Scroll to newsletter section
-  const scrollToNewsletter = () => {
-    newsletterRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  // Load preferred language from localStorage on client side
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem("preferredLanguage")
-    if (savedLanguage && (savedLanguage === "en" || savedLanguage === "pl")) {
-      setLanguage(savedLanguage)
-    }
-  }, [])
+  // --- Get FAQ data for the current language ---
+  // Type assertion needed because the structure is known
+  const faqData = (translations[currentLanguage.code as keyof typeof translations] as any)?.faqSection?.items || [];
 
   return (
-    <main className="min-h-screen bg-gray-900 text-white">
-      {/* Language Selector */}
-      <div className="absolute top-4 right-4 z-50">
-        <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} />
-      </div>
+    <> {/* Using Fragment */}
 
-      {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Video Background */}
-        <div className="absolute inset-0 z-0">
-          <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-            <source src="/club-lights.mp4" type="video/mp4" />
-          </video>
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-black/60 z-10"></div>
-        </div>
+      {/* === HERO SECTION === */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden text-center text-white">
+        <VideoBackground
+          videoUrl="/videos/club-lights.mp4" // Use your actual video path
+          fallbackImageUrl="/images/your-hero-fallback.jpg" // Use your actual fallback image path
+        />
 
         {/* Content */}
-        <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
-          {/* Animated Title */}
-          <AnimatedTitle text="BookingOut.fun" />
+        <div className="relative z-10 px-4 max-w-4xl mx-auto">
+          {/* Big Title */}
+           <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-4">
+             <span className="bg-gradient-to-r from-purple-500 to-cyan-400 bg-clip-text text-transparent">
+               BookingOut.fun
+             </span>
+           </h1>
+{/* Optional: Polish description text */}
+<motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="text-white/90 text-sm md:text-base mb-6 font-medium max-w-lg mx-auto"
+          >
+           
+            {/* Or use a translation key if added: {t("polish.description.key")} */}
+          </motion.p>
+          {/* Subtitle - Use corrected key */}
+          <p className="text-lg md:text-xl font-light text-gray-300 mb-8 whitespace-pre-line">
+            {t("hero.subtitle")} {/* CORRECTED KEY */}
+          </p>
 
-          <p className="text-xl md:text-2xl font-opensans text-gray-300 mb-10">{t.hero.subtitle}</p>
-
-          {/* Subtitle Carousel */}
-          <div className="mb-12">
-            <SubtitleCarousel subtitles={t.hero.carouselSubtitles} interval={2500} />
+          {/* SubtitleCarousel */}
+          <div className="my-12">
+            <SubtitleCarousel subtitles={carouselSubtitles} interval={3000} />
           </div>
 
-          <Link
-            href="#features"
-            className="inline-block bg-pink-500 hover:bg-pink-600 text-white font-medium py-3 px-8 rounded-full transition-colors"
+          {/* CTA Section */}
+          
+
+          {/* CTA Button with external glow */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              duration: 0.6,
+              delay: 0.8,
+              type: "spring",
+              stiffness: 200,
+              damping: 15,
+            }}
           >
-            {t.hero.cta}
-          </Link>
+            <div className="relative inline-block">
+              <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full opacity-75 blur-lg animate-pulse"></div>
+              {/* ElegantCTAButton uses t("hero.cta") internally - ensure that key exists */}
+              <ElegantCTAButton />
+            </div>
+          </motion.div>
+          {/* === END CTA Section === */}
         </div>
       </section>
+      {/* === END OF HERO SECTION === */}
 
       {/* Dynamic Image Section */}
       <DynamicImageSection />
 
-      {/* Features Grid Section */}
-      <section id="features" className="py-20 px-4 bg-gray-900">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">{t.features.title}</h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Card 1 */}
-            <div className="bg-gray-800 rounded-xl p-8 group hover:transform hover:-translate-y-2 transition-all duration-300">
-              <div className="w-full h-1 bg-pink-500 rounded-t-xl absolute top-0 left-0 right-0 group-hover:bg-gradient-to-r group-hover:from-pink-500 group-hover:via-purple-500 group-hover:to-cyan-500 transition-all duration-500"></div>
-              <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:bg-gray-600 transition-colors">
-                <Music className="w-8 h-8 text-pink-500 group-hover:text-pink-400 transition-colors" />
-              </div>
-              <h3 className="text-xl font-bold text-center mb-4">{t.features.card1.title}</h3>
-              <p className="text-gray-300 text-center">{t.features.card1.description}</p>
-            </div>
-
-            {/* Card 2 */}
-            <div className="bg-gray-800 rounded-xl p-8 group hover:transform hover:-translate-y-2 transition-all duration-300">
-              <div className="w-full h-1 bg-cyan-500 rounded-t-xl absolute top-0 left-0 right-0 group-hover:bg-gradient-to-r group-hover:from-cyan-500 group-hover:via-blue-500 group-hover:to-pink-500 transition-all duration-500"></div>
-              <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:bg-gray-600 transition-colors">
-                <Palmtree className="w-8 h-8 text-cyan-500 group-hover:text-cyan-400 transition-colors" />
-              </div>
-              <h3 className="text-xl font-bold text-center mb-4">{t.features.card2.title}</h3>
-              <p className="text-gray-300 text-center">{t.features.card2.description}</p>
-            </div>
-
-            {/* Card 3 */}
-            <div className="bg-gray-800 rounded-xl p-8 group hover:transform hover:-translate-y-2 transition-all duration-300">
-              <div className="w-full h-1 bg-pink-500 rounded-t-xl absolute top-0 left-0 right-0 group-hover:bg-gradient-to-r group-hover:from-pink-500 group-hover:via-purple-500 group-hover:to-cyan-500 transition-all duration-500"></div>
-              <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-6 mx-auto group-hover:bg-gray-600 transition-colors">
-                <Heart className="w-8 h-8 text-pink-500 group-hover:text-pink-400 transition-colors" />
-              </div>
-              <h3 className="text-xl font-bold text-center mb-4">{t.features.card3.title}</h3>
-              <p className="text-gray-300 text-center">{t.features.card3.description}</p>
-            </div>
-          </div>
-        </div>
+      {/* About Us Section */}
+      <section id="about-us" className="py-20 px-4 bg-gray-800">
+        <BookingOutAboutSection language={currentLanguage.code as "en" | "pl"} />
       </section>
+
+      {/* Enhanced Interactive Cards Section */}
+      <EnhancedInteractiveCards />
 
       {/* Newsletter Section */}
-      <section ref={newsletterRef} className="py-20 px-4 bg-gray-800">
-        <div className="max-w-4xl mx-auto">
-          <NewsletterSignup
-            title={t.newsletter.title}
-            description={t.newsletter.description}
-            buttonText={t.newsletter.buttonText}
-            successMessage={t.newsletter.successMessage}
-            placeholderText={t.newsletter.placeholder}
-          />
-        </div>
+      {/* Assuming NewsletterSection uses useLanguage internally for keys like "newsletterSection.title" etc. */}
+      <NewsletterSection /> {/* Render directly, no props needed */}
+
+      {/* FAQ Section - Use corrected key and pass data */}
+      <section id="faq-section" className="py-20 px-4 bg-gray-900">
+        <FAQSection
+            title={t("faqSection.title")} // CORRECTED KEY
+            faqs={faqData} // Pass the fetched FAQ data
+        />
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-20 px-4 bg-gray-900">
-        <FAQSection title={t.faq.title} faqs={t.faq.items} />
-      </section>
-
-      {/* Social Media Section */}
-      <section className="py-16 px-4 bg-gray-800">
-        <div className="max-w-4xl mx-auto">
+      {/* Social Media Section - Keys should be correct */}
+      <section id="contact-section" className="py-16 px-4 bg-gray-800">
+         <div className="max-w-4xl mx-auto">
           <SocialLinks
-            title={t.social.title}
+            title={t("social.title") || "Follow Us"} // Correct key + fallback
             links={[
               { platform: "facebook", url: "https://facebook.com" },
               { platform: "instagram", url: "https://instagram.com" },
@@ -150,14 +145,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer - Keys should be correct */}
       <footer className="py-8 bg-gray-900 text-center text-gray-400">
-        <p>© 2025 BookingOut.fun | {t.footer.rights}</p>
+        <p>© {new Date().getFullYear()} BookingOut.fun | {t("footer.rights") || "All rights reserved."}</p> {/* Correct key + fallback */}
       </footer>
 
       {/* Toast notifications */}
       <Toaster />
-    </main>
+    </> // Close Fragment
   )
 }
-
