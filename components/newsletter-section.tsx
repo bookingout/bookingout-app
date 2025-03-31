@@ -31,7 +31,7 @@ export default function NewsletterSection() {
   ];
 
   return (
-    <section id="newsletter" className="relative w-full py-20 overflow-hidden" aria-labelledby="newsletter-heading">
+    <section id="newsletter-section" className="relative w-full py-20 overflow-hidden" aria-labelledby="newsletter-heading">
       {/* Background elements */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 animate-gradient-x"></div>
       <div className="absolute inset-0 overflow-hidden">
